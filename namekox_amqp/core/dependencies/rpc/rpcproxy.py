@@ -78,7 +78,7 @@ class RpcMethodProxy(object):
     @property
     def exchange(self):
         exchange_name = get_exchange_name(self.service_name)
-        return Exchange(exchange_name, type='topic', durable=True, auto_delete=True)
+        return Exchange(exchange_name, type='topic', durable=True, auto_delete=False)
 
     def call_async(self, *args, **kwargs):
         message = {'args': args, 'kwargs': kwargs}
@@ -94,7 +94,7 @@ class RpcMethodProxy(object):
         push_options.setdefault('expiration', self.timeout)
         extr_headers = gen_message_headers(self.context.context)
         push_options.setdefault('headers', {}).update(extr_headers)
-        with producers[self.connection].acquire(block=False) as producer:
+        with producers[self.connection].acquire(block=True) as producer:
             producer.publish(message, **push_options)
         msg = '{} publish {} with {} succ'.format(self.dependency.obj_name, message, push_options)
         logger.debug(msg)

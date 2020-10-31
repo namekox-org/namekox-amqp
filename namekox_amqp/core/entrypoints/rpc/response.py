@@ -68,7 +68,7 @@ class RpcResponse(object):
             'correlation_id': self.correlation_id
         })
         reply_options.setdefault('expiration', self.expiration)
-        with producers[self.connection].acquire(block=False) as producer:
+        with producers[self.connection].acquire(block=True) as producer:
             producer.publish(resp, **reply_options)
         msg = '{} publish {} with {} succ'.format(self.entrypoint.obj_name, resp, reply_options)
         logger.debug(msg)

@@ -27,18 +27,16 @@ class AMQPReplyConsumer(BaseAMQPConsumer, SharedExtension, DependencyProvider):
 
     def stop(self):
         [ignore_exception(c.close) for c in self.consumers_channels]
-
-    def kill(self):
         self.connection.release()
 
     @AsLazyProperty
     def exchange(self):
         exchange_name = get_reply_exchange_name()
-        return Exchange(exchange_name, type='topic', durable=True, auto_delete=True)
+        return Exchange(exchange_name, type='topic', durable=True, auto_delete=False)
 
     @AsLazyProperty
     def connection(self):
-        return connections[AMQPConnect(self.container.config).curobj].acquire(block=False)
+        return AMQPConnect(self.container.config).curobj
 
     def get_consumers(self, _, channel):
         self.consumers = []

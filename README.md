@@ -158,3 +158,25 @@ AMQP:
 2020-10-30 11:53:28,603 DEBUG service ping already stopped
 2020-10-30 11:53:28,604 DEBUG services ['ping'] killed
 ```
+
+# Debug
+> config.yaml
+```yaml
+CONTEXT:
+  - namekox_amqp.cli.subctx.amqprpc:AMQPRpcProxy
+  - namekox_amqp.cli.subctx.amqppub:AMQPPubProxy
+AMQP:
+  qos: 50
+  ssl: ~
+  rpc:
+    timeout: 20
+  uri: pyamqp://admin:**@127.0.0.1:5672//
+  transport: ~
+  heartbeat: 15
+  serializer: json
+```
+
+> namekox shell
+```shell script
+In [1]: nx.amqprpc.proxy.ping.rpc_ping('nb')
+```

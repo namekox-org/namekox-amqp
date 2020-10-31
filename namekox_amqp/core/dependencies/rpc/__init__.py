@@ -3,7 +3,6 @@
 # author: forcemain@163.com
 
 
-from kombu.pools import connections
 from namekox_amqp.core.connection import AMQPConnect
 from namekox_core.core.friendly import AsLazyProperty
 from namekox_core.core.service.dependency import Dependency
@@ -28,7 +27,7 @@ class AMQPRpcProxy(Dependency):
 
     @AsLazyProperty
     def connection(self):
-        return connections[AMQPConnect(self.container.config).curobj].acquire(block=False)
+        return AMQPConnect(self.container.config).curobj
 
     @AsLazyProperty
     def serializer(self):
