@@ -59,7 +59,7 @@ AMQP:
   rpc:
     timeout: 20
   transport: ~
-  heartbeat: 10
+  heartbeat: 60
   serializer: json
   uri: pyamqp://admin:nimda@127.0.0.1:5672//
 ```
@@ -245,7 +245,7 @@ AMQP:
   rpc:
     timeout: 20
   transport: ~
-  heartbeat: 10
+  heartbeat: 60
   serializer: json
   uri: pyamqp://admin:nimda@127.0.0.1:5672//
 ```
