@@ -89,6 +89,12 @@ class RpcStandaloneProxy(object):
         random_id = random_id or self.consumers_ident
         return get_reply_queue_name('listener', 'cluster.rpc', random_id)
 
+    def __enter__(self):
+        return RpcClusterProxy(self)
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.connection and self.connection.release()
+
 
 class RpcClusterProxy(object):
     def __init__(self, proxy):
