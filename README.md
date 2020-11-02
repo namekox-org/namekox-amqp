@@ -205,8 +205,8 @@ AMQP:
 2020-11-02 16:07:44,480 DEBUG services ['ping'] killed
 ```
 
-# integrate
-```
+# Integrate
+```python
 # ! -*- coding: utf-8 -*-
 #
 # author: forcemain@163.com
