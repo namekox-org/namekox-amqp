@@ -4,8 +4,7 @@
 
 
 from logging import getLogger
-from kombu.pools import producers
-from namekox_amqp.core.connection import AMQPConnect
+from namekox_amqp.core.publisher import Publisher
 from namekox_core.core.friendly import AsLazyProperty
 from namekox_core.core.service.dependency import Dependency
 from namekox_amqp.constants import AMQP_CONFIG_KEY, DEFAULT_AMQP_SERIALIZE
@@ -21,12 +20,9 @@ class AMQPPubProxy(Dependency):
         self.push_options = push_options
         super(AMQPPubProxy, self).__init__(exchange, **push_options)
 
-    def stop(self):
-        self.connection.release()
-
     @AsLazyProperty
-    def connection(self):
-        return AMQPConnect(self.container.config).curobj
+    def producer(self):
+        return Publisher(self.container.config)
 
     @AsLazyProperty
     def serializer(self):
@@ -36,7 +32,6 @@ class AMQPPubProxy(Dependency):
     def send_async(self, message):
         push_options = self.push_options.copy()
         push_options.setdefault('serializer', self.serializer)
-        with producers[self.connection].acquire(block=True) as producer:
-            producer.publish(message, **push_options)
+        self.producer.publish(message, **push_options)
         msg = '{} send {} with {} succ'.format(self.obj_name, message, self.push_options)
         logger.debug(msg)

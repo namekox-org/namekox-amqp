@@ -4,7 +4,7 @@
 
 
 from kombu import Exchange
-from namekox_amqp.core.connection import AMQPConnect
+from namekox_amqp.core.publisher import Publisher
 from namekox_core.core.friendly import AsLazyProperty
 from namekox_amqp.core.messaging import get_reply_exchange_name
 from namekox_core.core.service.extension import SharedExtension
@@ -16,17 +16,14 @@ class AMQPRpcProducer(SharedExtension, EntrypointProvider):
     def __init__(self, *args, **kwargs):
         super(AMQPRpcProducer, self).__init__(*args, **kwargs)
 
-    def stop(self):
-        self.connection.release()
-
     @AsLazyProperty
     def exchange(self):
         exchange_name = get_reply_exchange_name()
         return Exchange(exchange_name, type='topic', durable=True, auto_delete=False)
 
     @AsLazyProperty
-    def connection(self):
-        return AMQPConnect(self.container.config).curobj
+    def publisher(self):
+        return Publisher(self.container.config)
 
     @AsLazyProperty
     def serializer(self):

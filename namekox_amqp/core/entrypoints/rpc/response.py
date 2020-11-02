@@ -9,7 +9,6 @@ import kombu.serialization
 
 
 from logging import getLogger
-from kombu.pools import producers
 from namekox_amqp.exceptions import SerializeError
 from namekox_core.exceptions import gen_exc_to_data
 
@@ -27,8 +26,8 @@ class RpcResponse(object):
         return self.entrypoint.producer.exchange
 
     @property
-    def connection(self):
-        return self.entrypoint.producer.connection
+    def publisher(self):
+        return self.entrypoint.producer.publisher
 
     @property
     def serializer(self):
@@ -68,8 +67,7 @@ class RpcResponse(object):
             'correlation_id': self.correlation_id
         })
         reply_options.setdefault('expiration', self.expiration)
-        with producers[self.connection].acquire(block=True) as producer:
-            producer.publish(resp, **reply_options)
+        self.publisher.publish(resp, **reply_options)
         msg = '{} publish {} with {} succ'.format(self.entrypoint.obj_name, resp, reply_options)
         logger.debug(msg)
         return result, exc_info

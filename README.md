@@ -60,7 +60,7 @@ AMQP:
     timeout: 20
   uri: pyamqp://admin:**@127.0.0.1:5672//
   transport: ~
-  heartbeat: 15
+  heartbeat: 600
   serializer: json
 ```
 
@@ -159,6 +159,11 @@ AMQP:
 2020-10-30 11:53:28,604 DEBUG services ['ping'] killed
 ```
 
+# integrate
+```
+
+```
+
 # Debug
 > config.yaml
 ```yaml
@@ -172,11 +177,35 @@ AMQP:
     timeout: 20
   uri: pyamqp://admin:**@127.0.0.1:5672//
   transport: ~
-  heartbeat: 15
+  heartbeat: 600
   serializer: json
 ```
 
 > namekox shell
 ```shell script
 In [1]: nx.amqprpc.proxy.ping.rpc_ping('nb')
+2020-10-31 21:14:16,585 DEBUG Start from server, version: 0.9, properties: {u'information': u'Licensed under the MPL 1.1. Website: https://rabbitmq.com', u'product': u'RabbitMQ', u'copyright': u'Copyright (c) 2007-2019 Pivotal Software, Inc.', u'capabilities': {u'exchange_exchange_bindings': True, u'connection.blocked': True, u'authentication_failure_close': True, u'direct_reply_to': True, u'basic.nack': True, u'per_consumer_qos': True, u'consumer_priorities': True, u'consumer_cancel_notify': True, u'publisher_confirms': True}, u'cluster_name': u'rabbit@a0b3d1669709', u'platform': u'Erlang/OTP 22.1.7', u'version': u'3.8.1'}, mechanisms: [u'PLAIN', u'AMQPLAIN'], locales: [u'en_US']
+2020-10-31 21:14:16,596 DEBUG Open OK!
+2020-10-31 21:14:16,596 DEBUG using channel_id: 1
+2020-10-31 21:14:16,600 DEBUG Channel open
+2020-10-31 21:14:16,713 DEBUG Closed channel #1
+Out[1]: {u'rpc_ping_recv': u'nb'}
+
+In [2]: nx.amqprpc.proxy.ping.rpc_ping('nb')
+2020-10-31 21:14:17,979 DEBUG using channel_id: 1
+2020-10-31 21:14:17,983 DEBUG Channel open
+2020-10-31 21:14:18,059 DEBUG Closed channel #1
+Out[2]: {u'rpc_ping_recv': u'nb'}
+
+In [3]: from kombu import Exchange
+
+In [4]: nx.amqppub.proxy(Exchange('e-pub', 'topic'), routing_key='r-pub').send_async({'nb': True})
+2020-10-31 21:18:34,904 DEBUG Start from server, version: 0.9, properties: {u'information': u'Licensed under the MPL 1.1. Website: https://rabbitmq.com', u'product': u'RabbitMQ', u'copyright': u'Copyright (c) 2007-2019 Pivotal Software, Inc.', u'capabilities': {u'exchange_exchange_bindings': True, u'connection.blocked': True, u'authentication_failure_close': True, u'direct_reply_to': True, u'basic.nack': True, u'per_consumer_qos': True, u'consumer_priorities': True, u'consumer_cancel_notify': True, u'publisher_confirms': True}, u'cluster_name': u'rabbit@a0b3d1669709', u'platform': u'Erlang/OTP 22.1.7', u'version': u'3.8.1'}, mechanisms: [u'PLAIN', u'AMQPLAIN'], locales: [u'en_US']
+2020-10-31 21:18:34,909 DEBUG Open OK!
+2020-10-31 21:18:34,910 DEBUG using channel_id: 1
+2020-10-31 21:18:34,912 DEBUG Channel open
+2020-10-31 21:18:34,913 DEBUG cluster.pub send {'nb': True} with {'routing_key': 'r-pub', 'serializer': 'json', 'exchange': <unbound Exchange e-pub(topic)>} succ
+
+In [5]: nx.amqppub.proxy(Exchange('e-pub', 'topic'), routing_key='r-pub').send_async({'nb': True})
+2020-10-31 21:18:52,687 DEBUG cluster.pub send {'nb': True} with {'routing_key': 'r-pub', 'serializer': 'json', 'exchange': <unbound Exchange e-pub(topic)>} succ
 ```

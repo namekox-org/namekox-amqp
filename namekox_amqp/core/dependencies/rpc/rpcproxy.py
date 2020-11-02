@@ -5,7 +5,6 @@
 
 from kombu import Exchange
 from logging import getLogger
-from kombu.pools import producers
 from namekox_core.core.generator import generator_uuid
 from namekox_amqp.core.messaging import get_exchange_name, get_route_name, gen_message_headers
 
@@ -56,8 +55,8 @@ class RpcMethodProxy(object):
         return self.dependency.listener
 
     @property
-    def connection(self):
-        return self.dependency.connection
+    def producer(self):
+        return self.dependency.producer
 
     @property
     def serializer(self):
@@ -94,8 +93,7 @@ class RpcMethodProxy(object):
         push_options.setdefault('expiration', self.timeout)
         extr_headers = gen_message_headers(self.context.context)
         push_options.setdefault('headers', {}).update(extr_headers)
-        with producers[self.connection].acquire(block=True) as producer:
-            producer.publish(message, **push_options)
+        self.producer.publish(message, **push_options)
         msg = '{} publish {} with {} succ'.format(self.dependency.obj_name, message, push_options)
         logger.debug(msg)
         reply_event = self.listener.get_reply_event(correlation_id, self.timeout)

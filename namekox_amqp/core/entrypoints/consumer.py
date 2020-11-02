@@ -4,7 +4,6 @@
 
 
 from kombu import Exchange
-from kombu.pools import connections
 from namekox_amqp.core.connection import AMQPConnect
 from namekox_amqp.core.consumer import BaseAMQPConsumer
 from namekox_amqp.core.messaging import get_exchange_name
