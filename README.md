@@ -1,6 +1,6 @@
 # Install
 ```shell script
-bash install.sh
+pip install -U namekox-amqp
 ```
 
 # Example
