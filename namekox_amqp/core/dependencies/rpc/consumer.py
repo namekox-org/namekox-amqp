@@ -4,7 +4,6 @@
 
 
 from logging import getLogger
-from kombu.pools import connections
 from kombu import Exchange, Consumer, Queue
 from namekox_amqp.core.connection import AMQPConnect
 from namekox_core.core.friendly import AsLazyProperty
@@ -26,7 +25,6 @@ class AMQPReplyConsumer(BaseAMQPConsumer, SharedExtension, DependencyProvider):
         super(AMQPReplyConsumer, self).__init__(*args, **kwargs)
 
     def stop(self):
-        [ignore_exception(c.close) for c in self.consumers_channels]
         self.connection.release()
 
     @AsLazyProperty

@@ -27,7 +27,7 @@ class BaseAMQPConsumer(ConsumerMixin, ControlExtension):
         def exc_func(exc_info):
             exc_type, exc_value, exc_trace = exc_info
             self.consumers_ready.send_exception(exc_value)
-        ignore_exception(gt.wait, exc_func=exc_func)
+        ignore_exception(gt.wait, exc_func=exc_func)()
 
     def start(self):
         if self.started:
@@ -79,7 +79,6 @@ class BaseAMQPConsumer(ConsumerMixin, ControlExtension):
         return super(BaseAMQPConsumer, self).on_consume_ready(connection, channel, consumers, **kwargs)
 
     def on_consume_end(self, connection, channel):
-        [ignore_exception(c.close) for c in self.consumers_channels]
         self.connection.release()
         return super(BaseAMQPConsumer, self).on_consume_end(connection, channel)
 

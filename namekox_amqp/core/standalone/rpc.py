@@ -66,7 +66,7 @@ class RpcStandaloneProxy(object):
         message.ack()
 
     def setup_consumer(self):
-        self.consumer and ignore_exception(self.consumer.close)
+        self.consumer and ignore_exception(self.consumer.close)()
         channel = self.connection.channel()
         reply_n = self.get_reply_qn()
         reply_r = self.get_reply_rn()

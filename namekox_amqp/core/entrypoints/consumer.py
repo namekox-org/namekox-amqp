@@ -14,7 +14,6 @@ from namekox_core.core.friendly import AsLazyProperty, ignore_exception
 
 class AMQPConsumer(BaseAMQPConsumer, SharedExtension, EntrypointProvider):
     def stop(self):
-        [ignore_exception(c.close) for c in self.consumers_channels]
         self.connection.release()
 
     @AsLazyProperty
