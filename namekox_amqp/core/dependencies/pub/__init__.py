@@ -38,7 +38,7 @@ class AMQPPubProxy(Dependency):
     def send_async(self, message):
         push_options = self.push_options.copy()
         push_options.setdefault('serializer', self.serializer)
-        extr_headers = gen_message_headers(self.context.context)
+        extr_headers = gen_message_headers(self.context.data)
         push_options.setdefault('headers', {}).update(extr_headers)
         self.producer.publish(message, **push_options)
         msg = '{} send {} with {} succ'.format(self.obj_name, message, self.push_options)

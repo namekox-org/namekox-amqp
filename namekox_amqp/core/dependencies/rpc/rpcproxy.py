@@ -91,7 +91,7 @@ class RpcMethodProxy(object):
             'correlation_id': correlation_id
         })
         push_options.setdefault('expiration', self.timeout)
-        extr_headers = gen_message_headers(self.context.context)
+        extr_headers = gen_message_headers(self.context.data)
         push_options.setdefault('headers', {}).update(extr_headers)
         self.producer.publish(message, **push_options)
         msg = '{} publish {} with {} succ'.format(self.dependency.obj_name, message, push_options)
