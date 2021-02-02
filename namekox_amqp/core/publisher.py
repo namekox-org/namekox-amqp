@@ -9,10 +9,7 @@ from .connection import AMQPConnect
 class Publisher(object):
     def __init__(self, config):
         self.config = config
+        self.pusher = AMQPConnect(self.config).curobj.Producer()
 
     def publish(self, message, **push_options):
-        c = AMQPConnect(self.config).curobj
-        p = c.Producer()
-        p.publish(message, **push_options)
-        p.release()
-        c.release()
+        self.pusher.publish(message, **push_options)

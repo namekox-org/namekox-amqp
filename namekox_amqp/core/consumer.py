@@ -17,7 +17,6 @@ class BaseAMQPConsumer(ConsumerMixin, ControlExtension):
     def __init__(self, *args, **kwargs):
         self.gt = None
         self.started = False
-        self.consumers = None
         self.consumers_ready = Event()
         self.consumers_channels = set()
         super(BaseAMQPConsumer, self).__init__(*args, **kwargs)
@@ -79,7 +78,6 @@ class BaseAMQPConsumer(ConsumerMixin, ControlExtension):
         return super(BaseAMQPConsumer, self).on_consume_ready(connection, channel, consumers, **kwargs)
 
     def on_consume_end(self, connection, channel):
-        self.connection.release()
         return super(BaseAMQPConsumer, self).on_consume_end(connection, channel)
 
     def on_iteration(self):

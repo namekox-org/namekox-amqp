@@ -15,8 +15,10 @@ logger = getLogger(__name__)
 
 
 class AMQPSubConsumer(AMQPConsumer):
+    should_stop = False
+
     def get_consumers(self, _, channel):
-        self.consumers = []
+        all_consumer = []
         self.consumers_channels.add(channel)
         service_name = self.container.service_cls.name
         config = self.container.config.get(AMQP_CONFIG_KEY, {}) or {}
@@ -28,8 +30,7 @@ class AMQPSubConsumer(AMQPConsumer):
             logger.debug(msg)
             on_message = as_wraps_partial(self.on_message, extension)
             _channel = channel.connection.channel()
-            self.consumers_channels.add(_channel)
             consumer = Consumer(_channel, queues=[queue], callbacks=[on_message])
             consumer.qos(prefetch_count=maxqos)
-            self.consumers.append(consumer)
-        return self.consumers
+            all_consumer.append(consumer)
+        return all_consumer

@@ -171,6 +171,7 @@ class RpcMethodProxy(object):
                 self.proxy.setup_consumer()
                 ispublish = False
         if istimeout is True:
+            self.proxy.setup_consumer()
             errs = gen_exc_to_data(RpcTimeout(self.timeout))
             self.raise_again(errs)
         body = self.proxy.replystorage.pop(correlation_id)

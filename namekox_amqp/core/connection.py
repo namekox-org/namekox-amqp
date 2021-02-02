@@ -4,6 +4,7 @@
 
 
 from kombu import Connection
+from eventlet import spawn_after
 from namekox_amqp.constants import (
     AMQP_CONFIG_KEY,
     DEFAULT_AMQP_URI,
@@ -11,12 +12,25 @@ from namekox_amqp.constants import (
     DEFAULT_AMQP_HEARTBEAT,
     DEFAULT_AMQP_TRANSPORT,
 )
+from namekox_core.core.friendly import as_singleton_cls, ignore_exception
 
 
+@as_singleton_cls
 class AMQPConnect(object):
     def __init__(self, config):
         self.config = config
         self.curobj = Connection(self.amqp_uri, **self.conn_cfg)
+        self.attach()
+
+    def attach(self):
+        interval = (self.curobj.heartbeat or 0) - 2
+        interval = 0 if interval <= 0 else interval
+
+        def heartbeat_check():
+            ignore_exception(self.curobj.heartbeat_check)()
+            spawn_after(interval, heartbeat_check)
+
+        interval and spawn_after(interval, heartbeat_check)
 
     @property
     def amqp_uri(self):

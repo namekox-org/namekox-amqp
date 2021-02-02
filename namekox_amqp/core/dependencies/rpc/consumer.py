@@ -9,10 +9,10 @@ from namekox_amqp.core.connection import AMQPConnect
 from namekox_core.core.friendly import AsLazyProperty
 from namekox_core.core.generator import generator_uuid
 from namekox_amqp.core.consumer import BaseAMQPConsumer
+from namekox_core.core.friendly import as_wraps_partial
 from namekox_core.core.service.extension import SharedExtension
 from namekox_core.core.service.dependency import DependencyProvider
 from namekox_amqp.constants import AMQP_CONFIG_KEY, DEFAULT_AMQP_QOS
-from namekox_core.core.friendly import as_wraps_partial, ignore_exception
 from namekox_amqp.core.messaging import get_reply_exchange_name, get_reply_queue_name, get_reply_route_name
 
 
@@ -20,6 +20,8 @@ logger = getLogger(__name__)
 
 
 class AMQPReplyConsumer(BaseAMQPConsumer, SharedExtension, DependencyProvider):
+    should_stop = False
+
     def __init__(self, *args, **kwargs):
         self.consumers_ident = generator_uuid()
         super(AMQPReplyConsumer, self).__init__(*args, **kwargs)
@@ -37,8 +39,7 @@ class AMQPReplyConsumer(BaseAMQPConsumer, SharedExtension, DependencyProvider):
         return AMQPConnect(self.container.config).curobj
 
     def get_consumers(self, _, channel):
-        self.consumers = []
-        self.consumers_channels.add(channel)
+        all_consumer = []
         service_name = self.container.service_cls.name
         config = self.container.config.get(AMQP_CONFIG_KEY, {}) or {}
         maxqos = config.get('qos', DEFAULT_AMQP_QOS) or DEFAULT_AMQP_QOS
@@ -50,8 +51,7 @@ class AMQPReplyConsumer(BaseAMQPConsumer, SharedExtension, DependencyProvider):
             logger.debug(msg)
             on_message = as_wraps_partial(self.on_message, extension)
             _channel = channel.connection.channel()
-            self.consumers_channels.add(_channel)
             consumer = Consumer(_channel, queues=[queue], callbacks=[on_message])
             consumer.qos(prefetch_count=maxqos)
-            self.consumers.append(consumer)
-        return self.consumers
+            all_consumer.append(consumer)
+        return all_consumer
