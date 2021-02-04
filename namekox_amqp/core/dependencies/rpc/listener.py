@@ -8,7 +8,6 @@ import time
 
 from eventlet import Event
 from logging import getLogger
-from amqp.exceptions import AMQPError
 from namekox_core.core.friendly import AsLazyProperty
 from namekox_core.core.service.extension import SharedExtension
 from namekox_core.core.service.dependency import DependencyProvider
@@ -22,8 +21,8 @@ logger = getLogger(__name__)
 
 
 class ReplyEvent(object):
-    def __init__(self, r_event, timeout=None):
-        self.r_event = r_event
+    def __init__(self, gtevent, timeout=None):
+        self.gtevent = gtevent
         self.timeout = timeout
         self.curtime = time.time()
 
@@ -46,7 +45,7 @@ class AMQPRpcListener(SharedExtension, DependencyProvider):
     consumer = AMQPReplyConsumer()
 
     def __init__(self, *args, **kwargs):
-        self.reply_events = {}
+        self.events = {}
         super(AMQPRpcListener, self).__init__(*args, **kwargs)
 
     def setup(self):
@@ -62,28 +61,23 @@ class AMQPRpcListener(SharedExtension, DependencyProvider):
         return config.get('qos', DEFAULT_AMQP_QOS) or DEFAULT_AMQP_QOS
 
     def _cleanup_events(self):
-        reply_events = {}
-        for correlation_id in self.reply_events:
-            re = self.reply_events['correlation_id']
+        events = {}
+        for correlation_id in self.events:
+            re = self.events['correlation_id']
             if re.expired:
                 continue
-            reply_events[correlation_id] = re
-        return reply_events
+            events[correlation_id] = re
+        return events
 
     def get_reply_event(self, correlation_id, timeout=None):
         re = ReplyEvent(Event(), timeout=timeout)
-        self.reply_events[correlation_id] = re
-        return self.reply_events[correlation_id]
+        self.events[correlation_id] = re
+        return self.events[correlation_id]
 
     def handle_message(self, body, message):
-        try:
-            message.ack()
-        except AMQPError:
-            return
-        msg = '{} receive {} with {}'.format(self.obj_name, body, message.properties)
-        logger.debug(msg)
-        len(self.reply_events) >= self.maxqos and self._cleanup_events()
+        message.ack()
+        len(self.events) >= self.maxqos and self._cleanup_events()
         correlation_id = message.properties.get('correlation_id', None)
-        reply_event = self.reply_events.pop(correlation_id, None)
-        reply_event and reply_event.r_event.send(body)
-
+        event = self.events.pop(correlation_id, None)
+        event and event.gtevent.send(body)
+        logger.debug('{} receive {} with {}'.format(self.obj_name, body, message.properties))

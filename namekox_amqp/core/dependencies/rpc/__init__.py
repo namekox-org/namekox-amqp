@@ -3,7 +3,7 @@
 # author: forcemain@163.com
 
 
-from namekox_amqp.core.publisher import Publisher
+from namekox_amqp.core.connection import AMQPConnect
 from namekox_core.core.friendly import AsLazyProperty
 from namekox_core.core.service.dependency import Dependency
 from namekox_amqp.core.messaging import get_reply_route_name
@@ -18,13 +18,17 @@ class AMQPRpcProxy(Dependency):
     listener = AMQPRpcListener()
 
     def __init__(self, timeout=None, **push_options):
+        self.connect = None
         self.push_options = push_options
         self.timeout = timeout if isinstance(timeout, (int, float)) else None
         super(AMQPRpcProxy, self).__init__(**push_options)
 
+    def setup(self):
+        self.connect = AMQPConnect(self.container.config).instance
+
     @AsLazyProperty
     def producer(self):
-        return Publisher(self.container.config)
+        return self.connect.Producer()
 
     @AsLazyProperty
     def serializer(self):

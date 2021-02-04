@@ -6,8 +6,11 @@
 from logging import getLogger
 from eventlet.event import Event
 from kombu.mixins import ConsumerMixin
+from namekox_core.core.friendly import ignore_exception
 from namekox_core.core.service.extension import ControlExtension
-from namekox_core.core.friendly import ignore_exception, AsLazyProperty
+
+
+from .connection import AMQPConnect
 
 
 logger = getLogger(__name__)
@@ -17,6 +20,7 @@ class BaseAMQPConsumer(ConsumerMixin, ControlExtension):
     def __init__(self, *args, **kwargs):
         self.gt = None
         self.started = False
+        self.connection = None
         self.consumers_ready = Event()
         self.consumers_channels = set()
         super(BaseAMQPConsumer, self).__init__(*args, **kwargs)
@@ -27,6 +31,9 @@ class BaseAMQPConsumer(ConsumerMixin, ControlExtension):
             exc_type, exc_value, exc_trace = exc_info
             self.consumers_ready.send_exception(exc_value)
         ignore_exception(gt.wait, exc_func=exc_func)()
+
+    def setup(self):
+        self.connection = AMQPConnect(self.container.config).instance
 
     def start(self):
         if self.started:
@@ -46,21 +53,15 @@ class BaseAMQPConsumer(ConsumerMixin, ControlExtension):
 
     def stop(self):
         self.should_stop = True
-        self.connection.release()
         self.started = False
         self.gt.kill()
 
     def kill(self):
         self.should_stop = True
-        self.connection.release()
         self.started = False
         self.gt.kill()
 
     # ConsumerMixin
-    @AsLazyProperty
-    def connection(self):
-        raise NotImplementedError
-
     def get_consumers(self, consumer_cls, channel):
         raise NotImplementedError
 

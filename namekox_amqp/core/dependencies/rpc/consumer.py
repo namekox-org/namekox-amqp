@@ -5,7 +5,6 @@
 
 from logging import getLogger
 from kombu import Exchange, Consumer, Queue
-from namekox_amqp.core.connection import AMQPConnect
 from namekox_core.core.friendly import AsLazyProperty
 from namekox_core.core.generator import generator_uuid
 from namekox_amqp.core.consumer import BaseAMQPConsumer
@@ -26,17 +25,10 @@ class AMQPReplyConsumer(BaseAMQPConsumer, SharedExtension, DependencyProvider):
         self.consumers_ident = generator_uuid()
         super(AMQPReplyConsumer, self).__init__(*args, **kwargs)
 
-    def stop(self):
-        self.connection.release()
-
     @AsLazyProperty
     def exchange(self):
         exchange_name = get_reply_exchange_name()
         return Exchange(exchange_name, type='topic', durable=True, auto_delete=False)
-
-    @AsLazyProperty
-    def connection(self):
-        return AMQPConnect(self.container.config).curobj
 
     def get_consumers(self, _, channel):
         all_consumer = []

@@ -12,17 +12,17 @@ logger = getLogger(__name__)
 
 
 class RpcReplyProxy(object):
-    def __init__(self, reply_event):
-        self.reply_event = reply_event
+    def __init__(self, event):
+        self.event = event
 
     @staticmethod
     def raise_again(errs):
         raise gen_data_to_exc(errs)
 
     def result(self):
-        timeout = self.reply_event.timeout
+        timeout = self.event.timeout
         errs = gen_exc_to_data(RpcTimeout(timeout))
-        resp = self.reply_event.r_event.wait(timeout)
+        resp = self.event.gtevent.wait(timeout)
         resp is None and self.raise_again(errs)
         errs = resp['errs']
         errs and self.raise_again(errs)

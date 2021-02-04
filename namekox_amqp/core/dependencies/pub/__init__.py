@@ -4,11 +4,11 @@
 
 
 from logging import getLogger
-from namekox_amqp.core.publisher import Publisher
+from namekox_amqp.core.connection import AMQPConnect
 from namekox_core.core.friendly import AsLazyProperty
 from namekox_core.core.service.dependency import Dependency
 from namekox_amqp.core.messaging import gen_message_headers
-from namekox_amqp.constants import AMQP_CONFIG_KEY, DEFAULT_AMQP_SERIALIZE
+from namekox_amqp.constants import AMQP_CONFIG_KEY, DEFAULT_AMQP_SERIALIZE, DEFAULT_AMQP_PUBLISHER_OPTIONS
 
 
 logger = getLogger(__name__)
@@ -18,13 +18,17 @@ class AMQPPubProxy(Dependency):
     def __init__(self, exchange, **push_options):
         self.context = None
         self.exchange = exchange
+        self.connect = None
         push_options['exchange'] = exchange
         self.push_options = push_options
         super(AMQPPubProxy, self).__init__(exchange, **push_options)
 
+    def setup(self):
+        self.connect = AMQPConnect(self.container.config).instance
+
     @AsLazyProperty
     def producer(self):
-        return Publisher(self.container.config)
+        return self.connect.Producer()
 
     @AsLazyProperty
     def serializer(self):
@@ -36,10 +40,12 @@ class AMQPPubProxy(Dependency):
         return self
 
     def send_async(self, message):
-        push_options = self.push_options.copy()
+        push_options = DEFAULT_AMQP_PUBLISHER_OPTIONS.copy()
+        push_options.update(self.push_options)
         push_options.setdefault('serializer', self.serializer)
         extr_headers = gen_message_headers(self.context.data)
-        push_options.setdefault('headers', {}).update(extr_headers)
+        push_options.setdefault('headers', {})
+        push_options['headers'].update(extr_headers)
+        self.connect.ensure_connection()
         self.producer.publish(message, **push_options)
-        msg = '{} send {} with {} succ'.format(self.obj_name, message, self.push_options)
-        logger.debug(msg)
+        logger.debug('{} send {} with {} succ'.format(self.obj_name, message, self.push_options))

@@ -6,8 +6,16 @@
 AMQP_CONFIG_KEY = 'AMQP'
 DEFAULT_AMQP_QOS = 50
 DEFAULT_AMQP_SSL = None
+DEFAULT_AMQP_PUBLISHER_OPTIONS = {
+    'retry': True,
+    'retry_policy': {'max_retries': 3},
+}
+DEFAULT_AMQP_TRANSPORT_OPTIONS = {
+    'interval_max': 30,
+    'interval_start': 2,
+    'interval_step': 2,
+}
 DEFAULT_AMQP_HEARTBEAT = 60
-DEFAULT_AMQP_TRANSPORT = None
 DEFAULT_AMQP_RPC_TIMEOUT = 20
 DEFAULT_AMQP_SERIALIZE = 'json'
 DEFAULT_AMQP_Q_PREFIX = 'namekox-q'

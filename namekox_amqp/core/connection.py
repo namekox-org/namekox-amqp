@@ -3,44 +3,48 @@
 # author: forcemain@163.com
 
 
-from kombu import Connection
-from eventlet import spawn_after
 from namekox_amqp.constants import (
     AMQP_CONFIG_KEY,
     DEFAULT_AMQP_URI,
     DEFAULT_AMQP_SSL,
     DEFAULT_AMQP_HEARTBEAT,
-    DEFAULT_AMQP_TRANSPORT,
+    DEFAULT_AMQP_TRANSPORT_OPTIONS,
 )
-from namekox_core.core.friendly import as_singleton_cls, ignore_exception
+from kombu import Connection as BaseConnection
+from namekox_core.core.friendly import AsLazyProperty
 
 
-@as_singleton_cls
+from .producer import Producer
+
+
+class Connection(BaseConnection):
+    def Producer(self, channel=None, *args, **kwargs):
+        return Producer(channel or self, *args, **kwargs)
+
+
 class AMQPConnect(object):
     def __init__(self, config):
         self.config = config
-        self.curobj = Connection(self.amqp_uri, **self.conn_cfg)
-        self.attach()
 
-    def attach(self):
-        interval = (self.curobj.heartbeat or 0) - 2
-        interval = 0 if interval <= 0 else interval
+    @AsLazyProperty
+    def instance(self):
+        return Connection(self.amqp_uri, **self.conn_cfg)
 
-        def heartbeat_check():
-            ignore_exception(self.curobj.heartbeat_check)()
-            spawn_after(interval, heartbeat_check)
-
-        interval and spawn_after(interval, heartbeat_check)
-
-    @property
+    @AsLazyProperty
     def amqp_uri(self):
         config = self.config.get(AMQP_CONFIG_KEY, {}) or {}
         return config.get('uri', DEFAULT_AMQP_URI) or DEFAULT_AMQP_URI
 
-    @property
+    @AsLazyProperty
     def conn_cfg(self):
         config = self.config.get(AMQP_CONFIG_KEY, {}) or {}
-        ssloption = config.get('ssl', DEFAULT_AMQP_SSL)
+        ssl = config.get('ssl', DEFAULT_AMQP_SSL)
         heartbeat = config.get('heartbeat', DEFAULT_AMQP_HEARTBEAT)
-        transport = config.get('transport', DEFAULT_AMQP_TRANSPORT)
-        return {'transport_options': transport, 'heartbeat': heartbeat, 'ssl': ssloption}
+        transport_options = DEFAULT_AMQP_TRANSPORT_OPTIONS.copy()
+        transport_options.update(config.get('transport_options', {}))
+        config = config.copy()
+        config.update({'ssl': ssl,
+                       'heartbeat': heartbeat,
+                       'transport_options': transport_options
+                       })
+        return config

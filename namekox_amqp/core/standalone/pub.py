@@ -4,9 +4,9 @@
 
 
 from logging import getLogger
-from namekox_amqp.core.publisher import Publisher
+from namekox_amqp.core.connection import AMQPConnect
 from namekox_core.core.friendly import AsLazyProperty
-from namekox_amqp.constants import AMQP_CONFIG_KEY, DEFAULT_AMQP_SERIALIZE
+from namekox_amqp.constants import AMQP_CONFIG_KEY, DEFAULT_AMQP_SERIALIZE, DEFAULT_AMQP_PUBLISHER_OPTIONS
 
 
 logger = getLogger(__name__)
@@ -16,12 +16,13 @@ class PubStandaloneProxy(object):
     def __init__(self, config, exchange=None, **push_options):
         self.config = config
         self.exchange = exchange
+        self.connect = AMQPConnect(config).instance
         exchange and push_options.update({'exchange': exchange})
         self.push_options = push_options
 
     @AsLazyProperty
     def producer(self):
-        return Publisher(self.config)
+        return self.connect.Producer()
 
     @AsLazyProperty
     def serializer(self):
@@ -53,12 +54,17 @@ class PubClusterProxy(object):
         return self.proxy.serializer
 
     @property
+    def connect(self):
+        return self.proxy.connect
+
+    @property
     def producer(self):
         return self.proxy.producer
 
     def send_async(self, message):
-        push_options = self.proxy.push_options.copy()
+        push_options = DEFAULT_AMQP_PUBLISHER_OPTIONS.copy()
+        push_options.update(self.proxy.push_options)
         push_options.setdefault('serializer', self.serializer)
+        self.connect.ensure_connection()
         self.producer.publish(message, **push_options)
-        msg = 'cluster.pub send {} with {} succ'.format(message, push_options)
-        logger.debug(msg)
+        logger.debug('cluster.pub send {} with {} succ'.format(message, push_options))

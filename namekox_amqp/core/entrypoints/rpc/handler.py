@@ -3,11 +3,7 @@
 # author: forcemain@163.com
 
 
-import sys
-
-
 from logging import getLogger
-from amqp.exceptions import AMQPError
 from namekox_core.core.friendly import as_wraps_partial
 from namekox_core.core.service.entrypoint import Entrypoint
 from namekox_amqp.core.messaging import get_message_headers
@@ -44,11 +40,8 @@ class AMQPRpcHandler(Entrypoint):
 
     def res_handler(self, message, context, result, exc_info):
         response = RpcResponse(self, message)
-        try:
-            result, exc_info = response.reply(result, exc_info)
-            message.ack()
-        except AMQPError:
-            result, exc_info = result, sys.exc_info()
+        result, exc_info = response.reply(result, exc_info)
+        message.ack()
         return result, exc_info
 
     @staticmethod
@@ -56,8 +49,7 @@ class AMQPRpcHandler(Entrypoint):
         return isinstance(body, dict) and 'args' in body and 'kwargs' in body
 
     def handle_message(self, body, message):
-        msg = '{} receive {} with {}'.format(self.obj_name, body, message.properties)
-        logger.debug(msg)
+        logger.debug('{} receive {} with {}'.format(self.obj_name, body, message.properties))
         if not self._check_message(body):
             msg = '{} not dict? missing `args`? missing `kwargs`?'
         elif not message.properties.get('reply_to', None):
@@ -65,14 +57,11 @@ class AMQPRpcHandler(Entrypoint):
         elif not message.properties.get('correlation_id', None):
             msg = '{} missing `correlation_id` in message.properties?'
         else:
-            msg = None
-        if msg is not None:
-            logger.warn(msg.format(body))
-            try:
-                message.ack()
-            except AMQPError:
-                return
+            msg = ''
+        msg = msg.format(body)
+        msg and logger.warn(msg)
+        msg and message.ack()
         args, kwargs = body['args'], body['kwargs']
         ctxdata = get_message_headers(message)
         res_handler = as_wraps_partial(self.res_handler, message)
-        self.container.spawn_worker_thread(self, args, kwargs, ctx_data=ctxdata, res_handler=res_handler)
+        msg or self.container.spawn_worker_thread(self, args, kwargs, ctx_data=ctxdata, res_handler=res_handler)

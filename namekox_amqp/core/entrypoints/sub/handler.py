@@ -3,7 +3,6 @@
 # author: forcemain@163.com
 
 
-from amqp.exceptions import AMQPError
 from namekox_core.core.friendly import as_wraps_partial
 from namekox_amqp.core.messaging import get_message_headers
 from namekox_core.core.service.entrypoint import Entrypoint
@@ -29,10 +28,7 @@ class AMQPSubHandler(Entrypoint):
         self.consumer.wait_extension_stop()
 
     def res_handler(self, message, context, result, exc_info):
-        try:
-            message.ack()
-        except AMQPError:
-            pass
+        message.ack()
         return result, exc_info
 
     def handle_message(self, body, message):
