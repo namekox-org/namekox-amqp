@@ -65,6 +65,5 @@ class PubClusterProxy(object):
         push_options = DEFAULT_AMQP_PUBLISHER_OPTIONS.copy()
         push_options.update(self.proxy.push_options)
         push_options.setdefault('serializer', self.serializer)
-        self.connect.ensure_connection()
         self.producer.publish(message, **push_options)
         logger.debug('cluster.pub send {} with {} succ'.format(message, push_options))

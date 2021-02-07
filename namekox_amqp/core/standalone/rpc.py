@@ -175,5 +175,4 @@ class RpcMethodProxy(object):
                              'serializer': self.serializer,
                              'correlation_id': correlation_id})
         push_options.setdefault('expiration', self.timeout)
-        self.connect.ensure_connection()
         self.connect.Producer().publish(mesg, **push_options)

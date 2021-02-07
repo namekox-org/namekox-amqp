@@ -15,7 +15,7 @@ readme = open(os.path.join(curdir, 'READIT.md'), 'rb', 'utf-8').read()
 
 setup(
     name='namekox-amqp',
-    version='0.0.6',
+    version='0.0.10',
     description='namekox amqp',
     long_description_content_type='text/markdown',
     long_description=readme,

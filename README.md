@@ -227,10 +227,10 @@ if __name__ == '__main__':
                        'rpc': {'timeout': 20},
                        'uri': 'pyamqp://admin:nimda@127.0.0.1:5672//'}}
     cur_time = time.time()
-    with RpcStandaloneProxy(config) as p:
-        val = random.randint(1, 100)
-        res = p(timeout=1).ping.rpc_ping(val)
-        print('Got cluster rpc result: {}, cost: {}s'.format(res, time.time()-cur_time))
+    p = RpcStandaloneProxy(config).get_instance()
+    val = random.randint(1, 100)
+    res = p(timeout=1).ping.rpc_ping(val)
+    print('Got cluster rpc result: {}, cost: {}s'.format(res, time.time()-cur_time))
 ```
 
 # Debug

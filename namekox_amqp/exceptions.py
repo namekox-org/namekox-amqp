@@ -9,7 +9,3 @@ class RpcTimeout(Exception):
 
 class SerializeError(Exception):
     pass
-
-
-class MethodNotFound(Exception):
-    pass

@@ -100,7 +100,6 @@ class RpcMethodProxy(object):
         extr_headers = gen_message_headers(self.ctx.data)
         push_options.setdefault('headers', {})
         push_options['headers'].update(extr_headers)
-        self.connect.ensure_connection()
         self.producer.publish(message, **push_options)
         logger.debug('{} publish {} with {}'.format(self.ext.obj_name, message, push_options))
         return RpcReplyProxy(self.listener.get_reply_event(correlation_id, self.timeout))

@@ -46,6 +46,5 @@ class AMQPPubProxy(Dependency):
         extr_headers = gen_message_headers(self.context.data)
         push_options.setdefault('headers', {})
         push_options['headers'].update(extr_headers)
-        self.connect.ensure_connection()
         self.producer.publish(message, **push_options)
         logger.debug('{} send {} with {} succ'.format(self.obj_name, message, self.push_options))
