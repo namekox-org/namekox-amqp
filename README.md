@@ -58,7 +58,7 @@ class Ping(object):
 ```yaml
 AMQP:
   qos: 50
-  uri: pyamqp://${RABBITMQ_USER:admin}:${RABBITMQ_PASS:nimda}@${RABBITMQ_HOST:127.0.0.1}:${RABBITMQ_PORT:5672}//
+  uri: pyamqp://admin:nimda@127.0.0.1:5672//
 ```
 
 > namekox run ping
@@ -219,7 +219,7 @@ CONTEXT:
   - namekox_amqp.cli.subctx.amqppub:AMQPPubProxy
 AMQP:
   qos: 50
-  uri: pyamqp://${RABBITMQ_USER:admin}:${RABBITMQ_PASS:nimda}@${RABBITMQ_HOST:127.0.0.1}:${RABBITMQ_PORT:5672}//
+  uri: pyamqp://admin:nimda@127.0.0.1:5672//
 ```
 
 > namekox shell
