@@ -31,7 +31,7 @@ class AMQPSubHandler(Entrypoint):
         self.consumer.wait_extension_stop()
 
     def res_handler(self, message, context, result, exc_info):
-        message.ack()
+        # message.ack()
         return result, exc_info
 
     def handle_message(self, body, message):

@@ -32,7 +32,7 @@ class AMQPSubConsumer(AMQPConsumer):
             logger.debug(msg)
             on_message = as_wraps_partial(self.on_message, extension)
             _channel = channel.connection.channel()
-            consumer = Consumer(_channel, queues=[queue], callbacks=[on_message])
+            consumer = Consumer(_channel, queues=[queue], callbacks=[on_message], no_ack=True)
             consumer.qos(prefetch_count=maxqos)
             all_consumer.append(consumer)
         return all_consumer
