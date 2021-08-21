@@ -28,7 +28,7 @@ class AMQPConnect(object):
     def __init__(self, config):
         self.config = config
 
-    @AsLazyProperty
+    @property
     def instance(self):
         return Connection(self.amqp_uri, **self.conn_cfg)
 
