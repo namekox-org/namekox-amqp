@@ -4,13 +4,14 @@
 
 from __future__ import unicode_literals
 
-
+from logging import getLogger
 from namekox_core.core.friendly import as_wraps_partial
 from namekox_amqp.core.messaging import get_message_headers
 from namekox_core.core.service.entrypoint import Entrypoint
 
-
 from .consumer import AMQPSubConsumer
+
+logger = getLogger(__name__)
 
 
 class AMQPSubHandler(Entrypoint):
@@ -37,4 +38,7 @@ class AMQPSubHandler(Entrypoint):
         args, kwargs = (body,), {}
         ctxdata = get_message_headers(message)
         res_handler = as_wraps_partial(self.res_handler, message)
-        self.container.spawn_worker_thread(self, args, kwargs, ctx_data=ctxdata, res_handler=res_handler)
+        try:
+            self.container.spawn_worker_thread(self, args, kwargs, ctx_data=ctxdata, res_handler=res_handler).wait()
+        except:
+            logger.error('unexpected error while consumer consume', exc_info=True)
